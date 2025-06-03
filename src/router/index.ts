@@ -3,13 +3,17 @@ import { createRouter, createWebHashHistory } from "vue-router";
 const router = createRouter({
   routes: [
     {
-      path: '/home',
-      component: () => import('../components/Home.vue')
+      path: '/',
+      redirect: '/pinia'
     },
     {
-      path: '/nav',
-      component: () => import('../components/Nav.vue')
-    }
+      path: '/pinia',
+      component: () => import('../views/Pinia.vue')
+    },
+    {
+      path: '/vue_router',
+      component: () => import('../views/VueRouter.vue')
+    },
   ],
   history: createWebHashHistory()
 })

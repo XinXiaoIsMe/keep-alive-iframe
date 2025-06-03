@@ -1,8 +1,8 @@
 <template>
   <div class="app-container">
     <div>
-      <router-link to="/home">Home</router-link>
-      <router-link to="/nav">Nav</router-link>
+      <router-link to="/pinia">Pinia</router-link>
+      <router-link to="/vue_router">VueRouter</router-link>
     </div>
     <router-view v-slot="{ Component }">
       <KeepAlive>
@@ -34,5 +34,9 @@ body, html {
 .page {
   flex: 1;
   border: 1px solid #ccc;
+}
+
+a + a {
+  margin-left: 10px;
 }
 </style>
