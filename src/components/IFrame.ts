@@ -1,33 +1,61 @@
-import { useResizeObserver, type MaybeRef } from "@vueuse/core";
-import { type Ref, type StyleValue, ref, watch } from "vue";
+import type { StyleValue } from "vue";
+
+export interface IFrameRect {
+  width: number;
+  height: number;
+  left: number;
+  top: number;
+}
+
+export interface IFrameOptions extends IFrameRect {
+  uid: string;
+  src: string;
+  onLoaded?: () => void;
+  onError?: (error?: string | Event) => void;
+}
 
 // 管理IFrame实例
 export class FrameManager {
   static readonly frameMap = new Map<string, KeepAliveFrame>();
 
-  static create (id: string, container: MaybeRef<HTMLElement | null>, src: MaybeRef<string>) {
-    let instance = this.get(id);
-    if (instance) instance.remove();
-    instance = new KeepAliveFrame(container, src);
-    instance.create();
-    this.frameMap.set(id, instance);
+  static create (options: IFrameOptions) {
+    const { uid } = options;
+    let instance = this.get(uid);
+    if (instance) instance.destroy();
+    instance = new KeepAliveFrame(options);
+    this.frameMap.set(uid, instance);
   }
 
-  static remove (id: string) {
-    const instance = this.get(id);
+  static destroy (uid: string) {
+    const instance = this.get(uid);
     if (!instance) return;
 
-    instance.remove();
-    this.frameMap.delete(id);
+    instance.destroy();
+    this.frameMap.delete(uid);
   }
 
-  static get (id: string) {
-    return this.frameMap.get(id);
+  static show (uid: string) {
+    const instance = this.get(uid);
+    instance?.show();
+  }
+
+  static hide (uid: string) {
+    const instance = this.get(uid);
+    instance?.hide();
+  }
+
+  static resize (uid: string, rect: IFrameRect) {
+    const instance = this.get(uid);
+    instance?.resize(rect);
+  }
+
+  static get (uid: string) {
+    return this.frameMap.get(uid);
   }
 
   static clear () {
     for (const instance of Object.values(this.frameMap)) {
-      instance.remove();
+      instance.destroy();
     }
 
     this.frameMap.clear();
@@ -36,47 +64,29 @@ export class FrameManager {
 
 // 创建IFrame实例
 export class KeepAliveFrame {
-  private readonly containerRef: Ref<HTMLElement | null>;
-  private readonly srcRef: Ref<string>;
   el: HTMLIFrameElement | null = null;
-  constructor(container: MaybeRef<HTMLElement | null>, src: MaybeRef<string>) {
-    this.containerRef = ref(container);
-    this.srcRef = ref(src);
-
-    // 监听容器大小变化，更新iframe
-    useResizeObserver(
-      this.containerRef,
-      () => {
-        this.update();
-      }
-    );
-
-    // 监听src变化，更新iframe
-    watch(this.srcRef, (newSrc) => {
-      if (!this.el) return;
-      this.el.src = newSrc;
-    });
+  private readonly _options : IFrameOptions;
+  constructor(options: IFrameOptions) {
+    this._options = options;
+    this.init();
   }
 
-  get container() {
-    return this.containerRef.value;
-  }
-
-  get src() {
-    return this.srcRef.value;
-  }
-
-  create() {
+  init () {
+    const {
+      src,
+      onLoaded,
+      onError
+    } = this._options;
     this.el = document.createElement("iframe");
-    this.el.src = this.src;
-    this.update();
+    this.el.src = src;
+    onLoaded && (this.el.onload = onLoaded);
+    onError && (this.el.onerror = onError);
+    this.resize(this._options);
     document.body.appendChild(this.el);
   }
 
-  update() {
-    if (!this.container) return;
-
-    const { left, top, width, height } = this.container.getBoundingClientRect();
+  resize(rect: IFrameRect) {
+    const { left, top, width, height } = rect;
     this.setStyle({
       position: "fixed",
       left: left + "px",
@@ -86,20 +96,18 @@ export class KeepAliveFrame {
     });
   }
 
-  remove () {
+  destroy () {
     if (!this.el) return;
     this.el.remove();
   }
 
   show () {
     if (!this.el) return;
-
     this.el.classList.remove('hidden');
   }
 
   hide () {
     if (!this.el) return;
-
     this.el.classList.add('hidden');
   }
 
