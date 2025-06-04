@@ -1,70 +1,114 @@
-import { useElementSize } from "@vueuse/core";
-import { type Ref, shallowRef, watch } from "vue";
+import { useResizeObserver, type MaybeRef } from "@vueuse/core";
+import { type Ref, type StyleValue, ref, watch } from "vue";
 
-export const iframeMap = new Map<string, HTMLIFrameElement>();
+// 管理IFrame实例
+export class FrameManager {
+  static readonly frameMap = new Map<string, KeepAliveFrame>();
 
-// 管理iframe元素
-export function useIframeManager () {
-  const addIframe = (key: string, iframe: HTMLIFrameElement) => {
-    iframeMap.set(key, iframe);
-  };
+  static create (id: string, container: MaybeRef<HTMLElement | null>, src: MaybeRef<string>) {
+    let instance = this.get(id);
+    if (instance) instance.remove();
+    instance = new KeepAliveFrame(container, src);
+    instance.create();
+    this.frameMap.set(id, instance);
+  }
 
-  const removeIframe = (key: string) => {
-    const iframe = iframeMap.get(key);
-    if (!iframe) return;
-    iframeMap.delete(key);
-    iframe.remove();
-  };
+  static remove (id: string) {
+    const instance = this.get(id);
+    if (!instance) return;
 
-  const getIframe = (key: string) => {
-    return iframeMap.get(key);
-  };
+    instance.remove();
+    this.frameMap.delete(id);
+  }
 
-  return {
-    addIframe,
-    removeIframe,
-    getIframe
+  static get (id: string) {
+    return this.frameMap.get(id);
+  }
+
+  static clear () {
+    for (const instance of Object.values(this.frameMap)) {
+      instance.remove();
+    }
+
+    this.frameMap.clear();
   }
 }
 
-// 创建iframe等
-export function useIframe (container: Ref<HTMLElement | null>, src: string) {
-  const iframe = shallowRef<HTMLIFrameElement>();
-  const { width, height } = useElementSize(container);
+// 创建IFrame实例
+export class KeepAliveFrame {
+  private readonly containerRef: Ref<HTMLElement | null>;
+  private readonly srcRef: Ref<string>;
+  el: HTMLIFrameElement | null = null;
+  constructor(container: MaybeRef<HTMLElement | null>, src: MaybeRef<string>) {
+    this.containerRef = ref(container);
+    this.srcRef = ref(src);
 
-  watch([width, height], ([w, h]) => {
-    if (!iframe.value) return;
-    // 容器尺寸改变时，更新iframe的大小
-    updateIframeScale(w, h);
-  });
+    // 监听容器大小变化，更新iframe
+    useResizeObserver(
+      this.containerRef,
+      () => {
+        this.update();
+      }
+    );
 
-  const createIframe = () => {
-    iframe.value = document.createElement('iframe');
-    const { left, top, width, height } = container.value!.getBoundingClientRect();
-    
-    iframe.value.src = src;
-    iframe.value.style.position = 'fixed';
-    iframe.value.style.left = left + "px";
-    iframe.value.style.top = top + "px";
-    iframe.value.style.width = width + "px";
-    iframe.value.style.height = height + "px";
-    
-    return iframe.value;
-  };
-
-  const updateIframeScale = (width: number, height: number) => {
-    if (!iframe.value) return;
-    iframe.value.style.width = width + "px";
-    iframe.value.style.height = height + "px";
+    // 监听src变化，更新iframe
+    watch(this.srcRef, (newSrc) => {
+      if (!this.el) return;
+      this.el.src = newSrc;
+    });
   }
 
-  return {
-    iframe,
-    createIframe,
-    updateIframeScale
+  get container() {
+    return this.containerRef.value;
+  }
+
+  get src() {
+    return this.srcRef.value;
+  }
+
+  create() {
+    this.el = document.createElement("iframe");
+    this.el.src = this.src;
+    this.update();
+    document.body.appendChild(this.el);
+  }
+
+  update() {
+    if (!this.container) return;
+
+    const { left, top, width, height } = this.container.getBoundingClientRect();
+    this.setStyle({
+      position: "fixed",
+      left: left + "px",
+      top: top + "px",
+      width: width + "px",
+      height: height + "px",
+    });
+  }
+
+  remove () {
+    if (!this.el) return;
+    this.el.remove();
+  }
+
+  show () {
+    if (!this.el) return;
+
+    this.el.classList.remove('hidden');
+  }
+
+  hide () {
+    if (!this.el) return;
+
+    this.el.classList.add('hidden');
+  }
+
+  setStyle(style: StyleValue) {
+    if (!this.el) return;
+    Object.assign(this.el.style, style);
   }
 }
 
-export function generateId () {
+export function generateId() {
   return `iframe_${Date.now()}`;
 }

@@ -3,41 +3,41 @@
 </template>
 
 <script lang="ts" setup>
-import { onActivated, onDeactivated, onUnmounted, useTemplateRef } from 'vue';
-import { useIframeManager, useIframe, generateId } from './IFrame';
+import { onActivated, onDeactivated, onUnmounted, useTemplateRef, toRef } from 'vue';
+import { FrameManager, generateId } from './IFrame';
 
 const props = defineProps<{
     src: string;
 }>();
 
 const iframeContainerRef = useTemplateRef('iframeContainerRef');
-const { addIframe, removeIframe, getIframe } = useIframeManager();
-const { createIframe } = useIframe(iframeContainerRef, props.src);
 const iframeId = generateId();
 
 onActivated(() => {
-    let iframe = getIframe(iframeId);
-    if (iframe && iframeContainerRef.value) {
-        iframe.classList.remove('hidden')
+    const frameInstance = FrameManager.get(iframeId);
+    // 如果存在iframe，则直接展示
+    if (frameInstance && iframeContainerRef.value) {
+        frameInstance.show()
         return;
     }
 
+    // 不存在时，新建iframe，插入body中
     if (iframeContainerRef.value) {
-        iframe = createIframe();
-        addIframe(iframeId, iframe);
-        document.body.appendChild(iframe);
+        FrameManager.create(iframeId, iframeContainerRef, toRef(props, 'src'));
     }
 });
 
 onDeactivated(() => {
-    const iframe = getIframe(iframeId);
-    if (!iframe) return;
+    const frameInstance = FrameManager.get(iframeId);
+    if (!frameInstance) return;
 
-    iframe.classList.add('hidden');
+    // 组件未激活时，隐藏iframe
+    frameInstance.hide();
 });
 
 onUnmounted(() => {
-    removeIframe(iframeId);
+    // 组件卸载时，移除iframe
+    FrameManager.remove(iframeId);
 });
 </script>
 
