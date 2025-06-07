@@ -118,7 +118,7 @@ onUnmounted(() => {
 });
 
 function createFrame() {
-    // src改变时，需要重新创建iframe，因此每次创建iframe时，先清空原有的iframe
+    // 每次创建iframe时，先清空原有的iframe，防止iframe可能出现的堆积
     destroyFrame()
     isLoading.value = true;
     isError.value = false;
