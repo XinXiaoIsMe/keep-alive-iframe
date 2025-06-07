@@ -17,7 +17,7 @@
 <script lang="ts" setup>
 import { ref, watch, onUnmounted, useTemplateRef, onDeactivated, onActivated } from 'vue';
 import { useResizeObserver, useThrottleFn } from '@vueuse/core';
-import { FrameManager, generateId } from './core';
+import { type HTMLElementRect, FrameManager, generateId } from './core';
 import { Icon } from '@iconify/vue';
 
 /**
@@ -33,13 +33,6 @@ import { Icon } from '@iconify/vue';
  * 组件销毁 => IFrameManager.destroy => iframe.destroy
  */
 
-interface HTMLElementRect {
-    width: number;
-    height: number;
-    top: number;
-    left: number;
-}
-
 const props = withDefaults(defineProps<{
     src: string;
     keepAlive?: boolean;
@@ -53,13 +46,16 @@ const emit = defineEmits<{
     error: [any],
     activited: [],
     deactivited: [],
-    destroy: []
+    destroy: [],
+    resize: [HTMLElementRect]
 }>();
 
 const iframeContainerRef = useTemplateRef('iframeContainerRef');
 const uid = generateId();
 const isLoading = ref(false);
 const isError = ref(false);
+let isReady = false;
+let isActivited = false;
 
 defineExpose({
     getFrame: () => FrameManager.get(uid)?.el
@@ -79,6 +75,7 @@ watch([() => props.src, iframeContainerRef], ([src, container]) => {
 });
 
 onActivated(() => {
+    isActivited = true;
     if (props.keepAlive) {
         showFrame();
         emit('activited');
@@ -90,6 +87,7 @@ onActivated(() => {
 });
 
 onDeactivated(() => {
+    isActivited = false;
     if (props.keepAlive) {
         hideFrame();
         emit('deactivited');
@@ -98,11 +96,13 @@ onDeactivated(() => {
 
     destroyFrame();
     emit('deactivited');
+    isReady = false;
 });
 
 onUnmounted(() => {
     // 组件卸载时，移除iframe
     destroyFrame();
+    isReady = false;
     emit('destroy');
 });
 
@@ -144,10 +144,12 @@ function hideFrame() {
 
 function resizeFrame() {
     FrameManager.resize(uid, getContainerRect());
+    isReady && isActivited && emit('resize', getContainerRect());
 }
 
 function handleLoad() {
     isLoading.value = false;
+    isReady = true;
     emit('load');
 }
 

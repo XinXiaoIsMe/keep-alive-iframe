@@ -1,13 +1,13 @@
 import type { StyleValue } from "vue";
 
-export interface IFrameRect {
+export interface HTMLElementRect {
   width: number;
   height: number;
-  left: number;
   top: number;
+  left: number;
 }
 
-export interface IFrameOptions extends IFrameRect {
+export interface IFrameOptions extends HTMLElementRect {
   uid: string;
   src: string;
   attrs: Record<string, any>;
@@ -19,7 +19,7 @@ export interface IFrameOptions extends IFrameRect {
 export class FrameManager {
   static readonly frameMap = new Map<string, KeepAliveFrame>();
 
-  static create (options: IFrameOptions) {
+  static create(options: IFrameOptions) {
     const { uid } = options;
     let instance = this.get(uid);
     if (instance) instance.destroy();
@@ -27,7 +27,7 @@ export class FrameManager {
     this.frameMap.set(uid, instance);
   }
 
-  static destroy (uid: string) {
+  static destroy(uid: string) {
     const instance = this.get(uid);
     if (!instance) return;
 
@@ -35,26 +35,26 @@ export class FrameManager {
     this.frameMap.delete(uid);
   }
 
-  static show (uid: string) {
+  static show(uid: string) {
     const instance = this.get(uid);
     instance?.show();
   }
 
-  static hide (uid: string) {
+  static hide(uid: string) {
     const instance = this.get(uid);
     instance?.hide();
   }
 
-  static resize (uid: string, rect: IFrameRect) {
+  static resize(uid: string, rect: HTMLElementRect) {
     const instance = this.get(uid);
     instance?.resize(rect);
   }
 
-  static get (uid: string) {
+  static get(uid: string) {
     return this.frameMap.get(uid);
   }
 
-  static clear () {
+  static clear() {
     for (const instance of Object.values(this.frameMap)) {
       instance.destroy();
     }
@@ -66,13 +66,13 @@ export class FrameManager {
 // 创建IFrame实例
 export class KeepAliveFrame {
   el: HTMLIFrameElement | null = null;
-  private readonly _options : IFrameOptions;
+  private readonly _options: IFrameOptions;
   constructor(options: IFrameOptions) {
     this._options = options;
     this.init();
   }
 
-  init () {
+  init() {
     const {
       src,
       attrs,
@@ -94,7 +94,7 @@ export class KeepAliveFrame {
     document.body.appendChild(this.el);
   }
 
-  resize(rect: IFrameRect) {
+  resize(rect: HTMLElementRect) {
     const { left, top, width, height } = rect;
     this.setStyle({
       position: "fixed",
@@ -105,7 +105,7 @@ export class KeepAliveFrame {
     });
   }
 
-  destroy () {
+  destroy() {
     if (!this.el) return;
     this.el.onload = null;
     this.el.onerror = null;
@@ -113,13 +113,13 @@ export class KeepAliveFrame {
     this.el = null;
   }
 
-  show () {
+  show() {
     if (!this.el) return;
 
     this.el.classList.remove('is-hidden');
   }
 
-  hide () {
+  hide() {
     if (!this.el) return;
 
     this.el.classList.add('is-hidden');
@@ -130,7 +130,7 @@ export class KeepAliveFrame {
     Object.assign(this.el.style, style);
   }
 
-  setAttrs (attrs: IFrameOptions['attrs']) {
+  setAttrs(attrs: IFrameOptions['attrs']) {
     if (!this.el) return;
 
     Object.entries(attrs).forEach(([key, value]) => {
@@ -143,6 +143,6 @@ export function generateId() {
   return `iframe_${Date.now()}`;
 }
 
-function warn (msg: string) {
+function warn(msg: string) {
   console.error(`[KeepAliveFrame]: ${msg}`);
 }

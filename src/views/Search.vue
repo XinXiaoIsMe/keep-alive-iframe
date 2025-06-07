@@ -6,14 +6,14 @@
       <button btn m-l-10px @click="toggle()">切换显示隐藏iframe</button>
     </div>
     <KeepAliveFrame v-if="visible" flex-1 :src="src" @load="handleLoad" @activited="handleActivited"
-      @deactivited="handleDeactivited" />
+      @deactivited="handleDeactivited" @resize="handleResize" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { useToggle } from '@vueuse/core';
-import { KeepAliveFrame } from '../components';
+import { KeepAliveFrame, type HTMLElementRect } from '../components';
 
 const URLS = {
   baidu: 'http://www.baidu.com',
@@ -37,5 +37,9 @@ function handleActivited() {
 
 function handleDeactivited() {
   console.log('deactivited');
+}
+
+function handleResize (data: HTMLElementRect) {
+  console.log('resize', data);
 }
 </script>
