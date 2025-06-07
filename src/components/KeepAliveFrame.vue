@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, onUnmounted, useTemplateRef, onDeactivated, onActivated } from 'vue';
+import { ref, watch, onUnmounted, onMounted, useTemplateRef, onDeactivated, onActivated } from 'vue';
 import { useResizeObserver, useThrottleFn } from '@vueuse/core';
 import { type HTMLElementRect, FrameManager, generateId } from './core';
 import { Icon } from '@iconify/vue';
@@ -54,7 +54,9 @@ const iframeContainerRef = useTemplateRef('iframeContainerRef');
 const uid = generateId();
 const isLoading = ref(false);
 const isError = ref(false);
+// iframe是否加载完成
 let isReady = false;
+// KeepAliveFrame是否处于激活状态
 let isActivated = false;
 
 defineExpose({
@@ -66,13 +68,17 @@ useResizeObserver(
     useThrottleFn(resizeFrame, 300, true)
 );
 
-watch([() => props.src, iframeContainerRef], ([src, container]) => {
-    if (src && container) {
+watch(iframeContainerRef, (container) => {
+    if (props.src && container) {
         createFrame();
     } else {
         destroyFrame();
     }
 });
+
+watch(() => props.src, src => {
+    updateFrame(src);
+})
 
 onActivated(() => {
     isActivated = true;
@@ -99,10 +105,15 @@ onDeactivated(() => {
     isReady = false;
 });
 
+onMounted(() => {
+    isActivated = true;
+});
+
 onUnmounted(() => {
     // 组件卸载时，移除iframe
     destroyFrame();
     isReady = false;
+    isActivated = false;
     emit('destroy');
 });
 
@@ -132,6 +143,10 @@ function createFrame() {
 
 function destroyFrame() {
     FrameManager.destroy(uid);
+}
+
+function updateFrame (src: string) {
+    FrameManager.update(uid, src);
 }
 
 function showFrame() {

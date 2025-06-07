@@ -50,6 +50,11 @@ export class FrameManager {
     instance?.resize(rect);
   }
 
+  static update (uid: string, src: string) {
+    const instance = this.get(uid);
+    instance?.update(src);
+  }
+
   static get(uid: string) {
     return this.frameMap.get(uid);
   }
@@ -125,6 +130,11 @@ export class KeepAliveFrame {
     this.el.classList.add('is-hidden');
   }
 
+  update (src: string) {
+    if (!this.el) return;
+    this.el.src = src;
+  }
+
   setStyle(style: StyleValue) {
     if (!this.el) return;
     Object.assign(this.el.style, style);
@@ -139,8 +149,9 @@ export class KeepAliveFrame {
   }
 }
 
+let id = 0;
 export function generateId() {
-  return `iframe_${Date.now()}`;
+  return `iframe_${id ++}`;
 }
 
 function warn(msg: string) {
