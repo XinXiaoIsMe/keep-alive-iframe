@@ -48,6 +48,14 @@ const props = withDefaults(defineProps<{
     keepAlive: true
 });
 
+const emit = defineEmits<{
+    load: [],
+    error: [any],
+    activited: [],
+    deactivited: [],
+    destroy: []
+}>();
+
 const iframeContainerRef = useTemplateRef('iframeContainerRef');
 const uid = generateId();
 const isLoading = ref(false);
@@ -73,24 +81,29 @@ watch([() => props.src, iframeContainerRef], ([src, container]) => {
 onActivated(() => {
     if (props.keepAlive) {
         showFrame();
+        emit('activited');
         return;
     }
 
     createFrame();
+    emit('activited');
 });
 
 onDeactivated(() => {
     if (props.keepAlive) {
         hideFrame();
+        emit('deactivited');
         return;
     }
 
     destroyFrame();
+    emit('deactivited');
 });
 
 onUnmounted(() => {
     // 组件卸载时，移除iframe
     destroyFrame();
+    emit('destroy');
 });
 
 function createFrame() {
@@ -112,30 +125,36 @@ function createFrame() {
         top,
         src: props.src,
         attrs: props.iframeAttrs || {},
-        onLoaded () {
-            isLoading.value = false;
-        },
-        onError () {
-            isLoading.value = false;
-            isError.value = true;
-        }
+        onLoaded: handleLoad,
+        onError: handleError
     });
 }
 
-function destroyFrame () {
+function destroyFrame() {
     FrameManager.destroy(uid);
 }
 
-function showFrame () {
+function showFrame() {
     FrameManager.show(uid);
 }
 
-function hideFrame () {
+function hideFrame() {
     FrameManager.hide(uid);
 }
 
-function resizeFrame () {
+function resizeFrame() {
     FrameManager.resize(uid, getContainerRect());
+}
+
+function handleLoad() {
+    isLoading.value = false;
+    emit('load');
+}
+
+function handleError(err: any) {
+    isLoading.value = false;
+    isError.value = true;
+    emit('error', err);
 }
 
 function getContainerRect(): HTMLElementRect {
