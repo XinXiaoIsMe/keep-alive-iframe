@@ -10,6 +10,7 @@ export interface IFrameRect {
 export interface IFrameOptions extends IFrameRect {
   uid: string;
   src: string;
+  attrs: Record<string, any>;
   onLoaded?: () => void;
   onError?: (error?: string | Event) => void;
 }
@@ -74,13 +75,21 @@ export class KeepAliveFrame {
   init () {
     const {
       src,
+      attrs,
       onLoaded,
       onError
     } = this._options;
+    if (!src) {
+      warn('请填写iframe的src');
+      return;
+    }
+
     this.el = document.createElement("iframe");
     this.el.src = src;
+    this.el.classList.add('keep-alive-frame');
     onLoaded && (this.el.onload = onLoaded);
     onError && (this.el.onerror = onError);
+    this.setAttrs(attrs);
     this.resize(this._options);
     document.body.appendChild(this.el);
   }
@@ -98,25 +107,42 @@ export class KeepAliveFrame {
 
   destroy () {
     if (!this.el) return;
+    this.el.onload = null;
+    this.el.onerror = null;
     this.el.remove();
+    this.el = null;
   }
 
   show () {
     if (!this.el) return;
-    this.el.classList.remove('hidden');
+
+    this.el.classList.remove('is-hidden');
   }
 
   hide () {
     if (!this.el) return;
-    this.el.classList.add('hidden');
+
+    this.el.classList.add('is-hidden');
   }
 
   setStyle(style: StyleValue) {
     if (!this.el) return;
     Object.assign(this.el.style, style);
   }
+
+  setAttrs (attrs: IFrameOptions['attrs']) {
+    if (!this.el) return;
+
+    Object.entries(attrs).forEach(([key, value]) => {
+      this.el!.setAttribute(key, value);
+    })
+  }
 }
 
 export function generateId() {
   return `iframe_${Date.now()}`;
+}
+
+function warn (msg: string) {
+  console.error(`[KeepAliveFrame]: ${msg}`);
 }

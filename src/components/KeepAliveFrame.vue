@@ -1,13 +1,24 @@
 <template>
-    <div ref="iframeContainerRef" class="keep-alive-frame">
-        <div v-if="loading">加载中...</div>
+    <div ref="iframeContainerRef" flex="~" items-center justify-center>
+        <slot v-if="!src">
+            请输入iframe的地址
+        </slot>
+        <slot v-else-if="isLoading" name="isLoading">
+            <Icon icon="eos-icons:bubble-loading" width="40" height="40" />
+        </slot>
+        <slot v-else-if="isError">
+            <div>
+                出错了！
+            </div>
+        </slot>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onActivated, onDeactivated, onUnmounted, useTemplateRef } from 'vue';
+import { ref, watch, onUnmounted, useTemplateRef, onDeactivated, onActivated } from 'vue';
 import { useResizeObserver, useThrottleFn } from '@vueuse/core';
-import { FrameManager, generateId } from './IFrame';
+import { FrameManager, generateId } from './core';
+import { Icon } from '@iconify/vue';
 
 /**
  * 开发思路：
@@ -29,35 +40,52 @@ interface HTMLElementRect {
     left: number;
 }
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     src: string;
-}>();
+    keepAlive?: boolean;
+    iframeAttrs?: Record<string, any>;
+}>(), {
+    keepAlive: true
+});
 
 const iframeContainerRef = useTemplateRef('iframeContainerRef');
 const uid = generateId();
-const loading = ref(false);
+const isLoading = ref(false);
+const isError = ref(false);
+
+defineExpose({
+    getFrame: () => FrameManager.get(uid)?.el
+});
 
 useResizeObserver(
     iframeContainerRef,
     useThrottleFn(resizeFrame, 300, true)
 );
 
+watch([() => props.src, iframeContainerRef], ([src, container]) => {
+    if (src && container) {
+        createFrame();
+    } else {
+        destroyFrame();
+    }
+});
+
 onActivated(() => {
-    const frameInstance = FrameManager.get(uid);
-    // 如果存在iframe，则直接展示
-    if (frameInstance && iframeContainerRef.value) {
+    if (props.keepAlive) {
         showFrame();
         return;
     }
 
-    // 不存在时，新建iframe，插入body中
-    if (iframeContainerRef.value) {
-        createFrame();
-    }
+    createFrame();
 });
 
 onDeactivated(() => {
-    hideFrame();
+    if (props.keepAlive) {
+        hideFrame();
+        return;
+    }
+
+    destroyFrame();
 });
 
 onUnmounted(() => {
@@ -66,7 +94,10 @@ onUnmounted(() => {
 });
 
 function createFrame() {
-    loading.value = true;
+    // src改变时，需要重新创建iframe，因此每次创建iframe时，先清空原有的iframe
+    destroyFrame()
+    isLoading.value = true;
+    isError.value = false;
     const {
         width,
         height,
@@ -80,11 +111,13 @@ function createFrame() {
         left,
         top,
         src: props.src,
+        attrs: props.iframeAttrs || {},
         onLoaded () {
-            loading.value = false;
+            isLoading.value = false;
         },
         onError () {
-            loading.value = false;
+            isLoading.value = false;
+            isError.value = true;
         }
     });
 }
@@ -93,16 +126,16 @@ function destroyFrame () {
     FrameManager.destroy(uid);
 }
 
-function resizeFrame () {
-    FrameManager.resize(uid, getContainerRect());
-}
-
 function showFrame () {
     FrameManager.show(uid);
 }
 
 function hideFrame () {
     FrameManager.hide(uid);
+}
+
+function resizeFrame () {
+    FrameManager.resize(uid, getContainerRect());
 }
 
 function getContainerRect(): HTMLElementRect {
@@ -116,20 +149,13 @@ function getContainerRect(): HTMLElementRect {
 </script>
 
 <style>
-.keep-alive-frame {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-iframe.hidden {
-    position: fixed;
-    left: 0;
+.keep-alive-frame.is-hidden {
+    display: none;
     top: 0;
+    left: 0;
     width: 0;
     height: 0;
     opacity: 0;
-    border: none;
     pointer-events: none;
 }
 </style>

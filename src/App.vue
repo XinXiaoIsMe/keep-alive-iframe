@@ -1,12 +1,13 @@
 <template>
-  <div class="app-container">
-    <div>
-      <router-link to="/pinia">Pinia</router-link>
-      <router-link to="/vue_router">VueRouter</router-link>
+  <div flex="~ col" w-100vw h-100vh p-20px box-border>
+    <div m-b-10px>
+      <router-link class="btn" to="/pinia">Pinia</router-link>
+      <router-link class="btn m-l-10px" to="/vue_router">VueRouter</router-link>
+      <router-link class="btn m-l-10px" to="/search">Search</router-link>
     </div>
     <router-view v-slot="{ Component }">
       <KeepAlive>
-        <component class="page" :is="Component" />
+        <component class="flex-1 border-[#ccc] border-solid border-1px" :is="Component" />
       </KeepAlive>
     </router-view>
   </div>
@@ -17,26 +18,8 @@ body, html {
   margin: 0;
 }
 
-#app {
-  width: 100vw;
-  height: 100vh;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-.app-container {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-}
-
-.page {
-  flex: 1;
-  border: 1px solid #ccc;
-}
-
-a + a {
-  margin-left: 10px;
+iframe {
+  border: none;
+  outline: none;
 }
 </style>

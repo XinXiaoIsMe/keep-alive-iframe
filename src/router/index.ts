@@ -14,6 +14,10 @@ const router = createRouter({
       path: '/vue_router',
       component: () => import('../views/VueRouter.vue')
     },
+    {
+      path: '/search',
+      component: () => import('../views/Search.vue')
+    }
   ],
   history: createWebHashHistory()
 })
