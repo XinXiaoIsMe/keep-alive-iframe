@@ -6,7 +6,7 @@
       <button btn m-l-10px @click="toggle()">切换显示隐藏iframe</button>
     </div>
     <KeepAliveFrame v-if="visible" flex-1 :src="src" @load="handleLoad" @activated="handleActivated"
-      @deactivited="handleDeactivited" @resize="handleResize" />
+      @deactivated="handleDeactivated" @resize="handleResize" />
   </div>
 </template>
 
@@ -35,7 +35,7 @@ function handleActivated() {
   console.log('activated');
 }
 
-function handleDeactivited() {
+function handleDeactivated() {
   console.log('deactivited');
 }
 
