@@ -44,8 +44,8 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
     load: [],
     error: [any],
-    activited: [],
-    deactivited: [],
+    activated: [],
+    deactivated: [],
     destroy: [],
     resize: [HTMLElementRect]
 }>();
@@ -55,7 +55,7 @@ const uid = generateId();
 const isLoading = ref(false);
 const isError = ref(false);
 let isReady = false;
-let isActivited = false;
+let isActivated = false;
 
 defineExpose({
     getFrame: () => FrameManager.get(uid)?.el
@@ -75,27 +75,27 @@ watch([() => props.src, iframeContainerRef], ([src, container]) => {
 });
 
 onActivated(() => {
-    isActivited = true;
+    isActivated = true;
     if (props.keepAlive) {
         showFrame();
-        emit('activited');
+        emit('activated');
         return;
     }
 
     createFrame();
-    emit('activited');
+    emit('activated');
 });
 
 onDeactivated(() => {
-    isActivited = false;
+    isActivated = false;
     if (props.keepAlive) {
         hideFrame();
-        emit('deactivited');
+        emit('deactivated');
         return;
     }
 
     destroyFrame();
-    emit('deactivited');
+    emit('deactivated');
     isReady = false;
 });
 
@@ -144,7 +144,7 @@ function hideFrame() {
 
 function resizeFrame() {
     FrameManager.resize(uid, getContainerRect());
-    isReady && isActivited && emit('resize', getContainerRect());
+    isReady && isActivated && emit('resize', getContainerRect());
 }
 
 function handleLoad() {
