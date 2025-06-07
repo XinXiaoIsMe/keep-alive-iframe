@@ -42,8 +42,9 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits<{
-    load: [],
-    error: [any],
+    load: [Event],
+    // 由于浏览器的安全策略，error事件通常不会触发
+    error: [Event | string],
     activated: [],
     deactivated: [],
     destroy: [],
@@ -162,16 +163,16 @@ function resizeFrame() {
     isReady && isActivated && emit('resize', getContainerRect());
 }
 
-function handleLoad() {
+function handleLoad(e: Event) {
     isLoading.value = false;
     isReady = true;
-    emit('load');
+    emit('load', e);
 }
 
-function handleError(err: any) {
+function handleError(e: Event | string) {
     isLoading.value = false;
     isError.value = true;
-    emit('error', err);
+    emit('error', e);
 }
 
 function getContainerRect(): HTMLElementRect {

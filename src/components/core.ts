@@ -11,8 +11,8 @@ export interface IFrameOptions extends HTMLElementRect {
   uid: string;
   src: string;
   attrs: Record<string, any>;
-  onLoaded?: () => void;
-  onError?: (error?: string | Event) => void;
+  onLoaded?: (e: Event) => void;
+  onError?: (e: Event | string) => void;
 }
 
 // 管理IFrame实例
