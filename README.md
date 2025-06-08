@@ -1,7 +1,6 @@
-
 # `KeepAliveFrame.vue`
 
-> 🧊 **一个支持 KeepAlive 的 iframe 渲染组件**，通过将 `<iframe>` 挂载至 `body` 实现“伪持久化”，解决切换路由或页面时 iframe 被销毁的问题。
+> 🧊 **一个支持 KeepAlive 的 iframe 渲染组件**，通过将 `<iframe>` 挂载至 `body` 实现"伪持久化"，解决切换路由或页面时 iframe 被销毁的问题。
 
 ---
 
@@ -92,3 +91,12 @@ components/
 
 - `iframe` 内容必须允许跨域访问或设置 `document.domain` 以避免跨域限制
 - 该组件并不会在 DOM 中渲染 `<iframe>`，iframe 将脱离插槽控制，仅用于视觉显示
+
+### 滚动问题
+
+当 `keepAlive` 设置为 `true` 时，如果 KeepAliveFrame 的祖先节点出现滚动条，导致 KeepAliveFrame 位置发生变化时，对应的 iframe 不会跟随滚动。这是因为在 keepAlive 模式下，iframe 被放置在 body 中并使用固定定位。
+
+解决方案：
+1. 如果不需要缓存功能，可以将 `keepAlive` 设置为 `false`
+2. 如果必须使用缓存功能，请确保 KeepAliveFrame 的祖先节点不会出现滚动条
+3. 如果必须同时使用缓存和滚动，可以考虑使用其他布局方案，如固定高度的容器
