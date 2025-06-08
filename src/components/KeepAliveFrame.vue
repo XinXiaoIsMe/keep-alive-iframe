@@ -1,13 +1,19 @@
 <template>
-    <div ref="iframeContainerRef" role="keep-alive-frame-container" flex="~" items-center justify-center>
-        <slot v-if="!src">
-            请输入iframe的地址
+    <div ref="iframeContainerRef" class="relative w-full h-full" role="keep-alive-frame-container">
+        <slot v-if="!src" name="empty">
+            <div class="flex justify-center items-center w-full h-full text-gray-500">
+                请输入iframe的地址
+            </div>
         </slot>
-        <slot v-else-if="isLoading" name="isLoading">
-            <Icon icon="eos-icons:bubble-loading" width="40" height="40" />
+        <slot v-else-if="isLoading" name="loading">
+            <div class="absolute inset-0 bg-white/80 backdrop-blur-sm z-1 flex items-center justify-center">
+                <div class="flex items-center justify-center w-full h-full">
+                    <Icon icon="eos-icons:bubble-loading" width="40" height="40" />
+                </div>
+            </div>
         </slot>
-        <slot v-else-if="isError">
-            <div>
+        <slot v-else-if="isError" name="error">
+            <div class="flex justify-center items-center w-full h-full text-gray-500">
                 出错了！
             </div>
         </slot>
@@ -167,7 +173,9 @@ function createFrame() {
         src: props.src,
         attrs: props.iframeAttrs || {},
         onLoaded: handleLoad,
-        onError: handleError
+        onError: handleError,
+        keepAlive: props.keepAlive,
+        container: props.keepAlive ? undefined : iframeContainerRef.value
     });
 }
 
@@ -226,6 +234,13 @@ function getContainerRect(): HTMLElementRect {
 </script>
 
 <style>
+.keep-alive-frame {
+    border: none;
+    background: white;
+    width: 100%;
+    height: 100%;
+}
+
 .keep-alive-frame.is-hidden {
     display: none;
     top: 0;

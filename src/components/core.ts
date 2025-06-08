@@ -13,6 +13,8 @@ export interface IFrameOptions extends HTMLElementRect {
   attrs: Record<string, string | number | boolean>;
   onLoaded?: (e: Event) => void;
   onError?: (e: Event | string) => void;
+  keepAlive?: boolean;
+  container?: HTMLElement;
 }
 
 interface FrameCacheItem {
@@ -135,7 +137,7 @@ export class KeepAliveFrame {
   }
 
   private init(): void {
-    const { src, attrs, onLoaded, onError } = this.options;
+    const { src, attrs, onLoaded, onError, keepAlive, container } = this.options;
     
     if (!src) {
       warn('请填写iframe的src');
@@ -157,7 +159,13 @@ export class KeepAliveFrame {
 
       this.setAttrs(attrs);
       this.resize(this.options);
-      document.body.appendChild(this.el);
+
+      // 根据 keepAlive 属性决定 iframe 的放置位置
+      if (keepAlive) {
+        document.body.appendChild(this.el);
+      } else if (container) {
+        container.appendChild(this.el);
+      }
     } catch (error) {
       warn(`初始化iframe失败: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -167,13 +175,22 @@ export class KeepAliveFrame {
     if (!this.el) return;
 
     const { left, top, width, height } = rect;
-    this.setStyle({
-      position: "fixed",
-      left: `${left}px`,
-      top: `${top}px`,
-      width: `${width}px`,
-      height: `${height}px`,
-    });
+    
+    // 只在 keepAlive 模式下设置定位
+    if (this.options.keepAlive) {
+      this.setStyle({
+        position: "fixed",
+        left: `${left}px`,
+        top: `${top}px`,
+        width: `${width}px`,
+        height: `${height}px`,
+      });
+    } else {
+      this.setStyle({
+        width: "100%",
+        height: "100%",
+      });
+    }
   }
 
   destroy(): void {
