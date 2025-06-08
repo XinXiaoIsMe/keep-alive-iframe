@@ -4,6 +4,7 @@
       <router-link class="btn" to="/pinia">Pinia</router-link>
       <router-link class="btn m-l-10px" to="/vue_router">VueRouter</router-link>
       <router-link class="btn m-l-10px" to="/search">Search</router-link>
+      <router-link class="btn m-l-10px" to="/frame_cache_test">缓存测试</router-link>
     </div>
     <router-view v-slot="{ Component }">
       <KeepAlive>

@@ -17,6 +17,10 @@ const router = createRouter({
     {
       path: '/search',
       component: () => import('../views/Search.vue')
+    },
+    {
+      path: '/frame_cache_test',
+      component: () => import('../views/FrameCacheTest.vue')
     }
   ],
   history: createWebHashHistory()

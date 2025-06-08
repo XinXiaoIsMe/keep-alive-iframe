@@ -1,5 +1,5 @@
 <template>
-    <div ref="iframeContainerRef" flex="~" items-center justify-center>
+    <div ref="iframeContainerRef" role="keep-alive-frame-container" flex="~" items-center justify-center>
         <slot v-if="!src">
             请输入iframe的地址
         </slot>
@@ -37,8 +37,10 @@ const props = withDefaults(defineProps<{
     src: string;
     keepAlive?: boolean;
     iframeAttrs?: Record<string, any>;
+    maxCacheSize?: number; // 最大缓存数量
 }>(), {
-    keepAlive: true
+    keepAlive: true,
+    maxCacheSize: 10
 });
 
 const emit = defineEmits<{
@@ -48,7 +50,9 @@ const emit = defineEmits<{
     activated: [],
     deactivated: [],
     destroy: [],
-    resize: [HTMLElementRect]
+    resize: [HTMLElementRect],
+    cacheHit: [], // 缓存命中事件
+    cacheMiss: [], // 缓存未命中事件
 }>();
 
 const iframeContainerRef = useTemplateRef('iframeContainerRef');
@@ -59,6 +63,14 @@ const isError = ref(false);
 let isReady = false;
 // KeepAliveFrame是否处于激活状态
 let isActivated = false;
+
+// 检查iframe是否存在，如果不存在则重新创建
+function ensureFrame() {
+    const frame = FrameManager.get(uid);
+    if (!frame && props.src) {
+        createFrame();
+    }
+}
 
 defineExpose({
     getFrame: () => FrameManager.get(uid)?.el
@@ -79,11 +91,16 @@ watch(iframeContainerRef, (container) => {
 
 watch(() => props.src, src => {
     updateFrame(src);
-})
+});
+
+watch(() => props.maxCacheSize, maxCacheSize => {
+    FrameManager.setMaxCacheSize(maxCacheSize);
+});
 
 onActivated(() => {
     isActivated = true;
     if (props.keepAlive) {
+        ensureFrame(); // 确保iframe存在
         showFrame();
         emit('activated');
         return;
@@ -108,6 +125,9 @@ onDeactivated(() => {
 
 onMounted(() => {
     isActivated = true;
+    ensureFrame(); // 确保iframe存在
+    // 设置最大缓存数量
+    FrameManager.setMaxCacheSize(props.maxCacheSize);
 });
 
 onUnmounted(() => {
@@ -129,6 +149,15 @@ function createFrame() {
         left,
         top
     } = getContainerRect();
+
+    // 检查是否命中缓存
+    const existingFrame = FrameManager.get(uid);
+    if (existingFrame) {
+        emit('cacheHit');
+    } else {
+        emit('cacheMiss');
+    }
+
     FrameManager.create({
         uid,
         width,
@@ -146,16 +175,27 @@ function destroyFrame() {
     FrameManager.destroy(uid);
 }
 
-function updateFrame (src: string) {
-    FrameManager.update(uid, src);
+function updateFrame(src: string) {
+    const frame = FrameManager.get(uid);
+    if (frame) {
+        FrameManager.update(uid, src);
+    } else {
+        createFrame(); // 如果iframe不存在，重新创建
+    }
 }
 
 function showFrame() {
-    FrameManager.show(uid);
+    const frame = FrameManager.get(uid);
+    if (frame) {
+        FrameManager.show(uid);
+    } else {
+        createFrame(); // 如果iframe不存在，重新创建
+    }
 }
 
 function hideFrame() {
-    FrameManager.hide(uid);
+    const frame = FrameManager.get(uid);
+    frame && FrameManager.hide(uid);
 }
 
 function resizeFrame() {

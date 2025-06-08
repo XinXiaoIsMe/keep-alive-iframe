@@ -10,150 +10,217 @@ export interface HTMLElementRect {
 export interface IFrameOptions extends HTMLElementRect {
   uid: string;
   src: string;
-  attrs: Record<string, any>;
+  attrs: Record<string, string | number | boolean>;
   onLoaded?: (e: Event) => void;
   onError?: (e: Event | string) => void;
 }
 
-// 管理IFrame实例
-export class FrameManager {
-  static readonly frameMap = new Map<string, KeepAliveFrame>();
+interface FrameCacheItem {
+  frame: KeepAliveFrame;
+  lastUsed: number;
+}
 
-  static create(options: IFrameOptions) {
-    const { uid } = options;
-    let instance = this.get(uid);
-    if (instance) instance.destroy();
-    instance = new KeepAliveFrame(options);
-    this.frameMap.set(uid, instance);
+export class FrameManager {
+  private static readonly frameMap = new Map<string, FrameCacheItem>();
+  private static MAX_CACHE_SIZE = 10; // 最大缓存数量
+
+  private static updateLastUsed(uid: string): void {
+    const item = this.frameMap.get(uid);
+    if (item) {
+      item.lastUsed = Date.now();
+    }
   }
 
-  static destroy(uid: string) {
-    const instance = this.get(uid);
-    if (!instance) return;
+  private static enforceCacheLimit(): void {
+    if (this.frameMap.size <= this.MAX_CACHE_SIZE) return;
 
-    instance.destroy();
+    // 按最后使用时间排序
+    const sortedFrames = Array.from(this.frameMap.entries())
+      .sort(([, a], [, b]) => a.lastUsed - b.lastUsed);
+
+    // 删除最旧的缓存，直到数量符合限制
+    while (this.frameMap.size > this.MAX_CACHE_SIZE) {
+      const [uid] = sortedFrames.shift()!;
+      this.destroy(uid);
+    }
+  }
+
+  static create(options: IFrameOptions): void {
+    const { uid } = options;
+    const existingInstance = this.get(uid);
+    if (existingInstance) {
+      existingInstance.destroy();
+    }
+    const instance = new KeepAliveFrame(options);
+    this.frameMap.set(uid, {
+      frame: instance,
+      lastUsed: Date.now()
+    });
+    this.enforceCacheLimit();
+  }
+
+  static destroy(uid: string): void {
+    const item = this.frameMap.get(uid);
+    if (!item) return;
+
+    item.frame.destroy();
     this.frameMap.delete(uid);
   }
 
-  static show(uid: string) {
-    const instance = this.get(uid);
-    instance?.show();
+  static show(uid: string): void {
+    const item = this.frameMap.get(uid);
+    if (!item) return;
+
+    item.frame.show();
+    this.updateLastUsed(uid);
   }
 
-  static hide(uid: string) {
-    const instance = this.get(uid);
-    instance?.hide();
+  static hide(uid: string): void {
+    const item = this.frameMap.get(uid);
+    if (!item) return;
+
+    item.frame.hide();
+    this.updateLastUsed(uid);
   }
 
-  static resize(uid: string, rect: HTMLElementRect) {
-    const instance = this.get(uid);
-    instance?.resize(rect);
+  static resize(uid: string, rect: HTMLElementRect): void {
+    const item = this.frameMap.get(uid);
+    if (!item) return;
+
+    item.frame.resize(rect);
+    this.updateLastUsed(uid);
   }
 
-  static update (uid: string, src: string) {
-    const instance = this.get(uid);
-    instance?.update(src);
+  static update(uid: string, src: string): void {
+    const item = this.frameMap.get(uid);
+    if (!item) return;
+
+    item.frame.update(src);
+    this.updateLastUsed(uid);
   }
 
-  static get(uid: string) {
-    return this.frameMap.get(uid);
-  }
-
-  static clear() {
-    for (const instance of Object.values(this.frameMap)) {
-      instance.destroy();
+  static get(uid: string): KeepAliveFrame | undefined {
+    const item = this.frameMap.get(uid);
+    if (item) {
+      this.updateLastUsed(uid);
+      return item.frame;
     }
+    return undefined;
+  }
 
+  static clear(): void {
+    this.frameMap.forEach(item => item.frame.destroy());
     this.frameMap.clear();
+  }
+
+  // 设置最大缓存数量
+  static setMaxCacheSize(size: number): void {
+    if (size < 1) {
+      warn('缓存大小必须大于0');
+      return;
+    }
+    this.MAX_CACHE_SIZE = size;
+    this.enforceCacheLimit();
   }
 }
 
 // 创建IFrame实例
 export class KeepAliveFrame {
-  el: HTMLIFrameElement | null = null;
-  private readonly _options: IFrameOptions;
+  private el: HTMLIFrameElement | null = null;
+  private readonly options: IFrameOptions;
+
   constructor(options: IFrameOptions) {
-    this._options = options;
+    this.options = options;
     this.init();
   }
 
-  init() {
-    const {
-      src,
-      attrs,
-      onLoaded,
-      onError
-    } = this._options;
+  private init(): void {
+    const { src, attrs, onLoaded, onError } = this.options;
+    
     if (!src) {
       warn('请填写iframe的src');
       return;
     }
 
-    this.el = document.createElement("iframe");
-    this.el.src = src;
-    this.el.classList.add('keep-alive-frame');
-    onLoaded && (this.el.onload = onLoaded);
-    onError && (this.el.onerror = onError);
-    this.setAttrs(attrs);
-    this.resize(this._options);
-    document.body.appendChild(this.el);
+    try {
+      this.el = document.createElement("iframe");
+      this.el.src = src;
+      this.el.classList.add('keep-alive-frame');
+      
+      if (onLoaded) {
+        this.el.onload = onLoaded;
+      }
+      
+      if (onError) {
+        this.el.onerror = onError;
+      }
+
+      this.setAttrs(attrs);
+      this.resize(this.options);
+      document.body.appendChild(this.el);
+    } catch (error) {
+      warn(`初始化iframe失败: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
-  resize(rect: HTMLElementRect) {
+  resize(rect: HTMLElementRect): void {
+    if (!this.el) return;
+
     const { left, top, width, height } = rect;
     this.setStyle({
       position: "fixed",
-      left: left + "px",
-      top: top + "px",
-      width: width + "px",
-      height: height + "px",
+      left: `${left}px`,
+      top: `${top}px`,
+      width: `${width}px`,
+      height: `${height}px`,
     });
   }
 
-  destroy() {
+  destroy(): void {
     if (!this.el) return;
+
     this.el.onload = null;
     this.el.onerror = null;
     this.el.remove();
     this.el = null;
   }
 
-  show() {
+  show(): void {
     if (!this.el) return;
-
     this.el.classList.remove('is-hidden');
   }
 
-  hide() {
+  hide(): void {
     if (!this.el) return;
-
     this.el.classList.add('is-hidden');
   }
 
-  update (src: string) {
+  update(src: string): void {
     if (!this.el) return;
     this.el.src = src;
   }
 
-  setStyle(style: StyleValue) {
+  private setStyle(style: StyleValue): void {
     if (!this.el) return;
     Object.assign(this.el.style, style);
   }
 
-  setAttrs(attrs: IFrameOptions['attrs']) {
+  private setAttrs(attrs: IFrameOptions['attrs']): void {
     if (!this.el) return;
 
     Object.entries(attrs).forEach(([key, value]) => {
-      this.el!.setAttribute(key, value);
-    })
+      if (this.el) {
+        this.el.setAttribute(key, String(value));
+      }
+    });
   }
 }
 
 let id = 0;
-export function generateId() {
-  return `iframe_${id ++}`;
+export function generateId(): string {
+  return `iframe_${id++}`;
 }
 
-function warn(msg: string) {
+function warn(msg: string): void {
   console.error(`[KeepAliveFrame]: ${msg}`);
 }
