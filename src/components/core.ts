@@ -15,6 +15,7 @@ export interface IFrameOptions extends HTMLElementRect {
   onError?: (e: Event | string) => void;
   keepAlive?: boolean;
   container?: HTMLElement;
+  parentContainer?: HTMLElement; // 父容器，用于监听滚动事件
 }
 
 interface FrameCacheItem {
@@ -130,6 +131,8 @@ export class FrameManager {
 export class KeepAliveFrame {
   private el: HTMLIFrameElement | null = null;
   private readonly options: IFrameOptions;
+  private originalRect: HTMLElementRect = { width: 0, height: 0, top: 0, left: 0 };
+  private scrollHandler: (() => void) | null = null;
 
   constructor(options: IFrameOptions) {
     this.options = options;
@@ -137,7 +140,7 @@ export class KeepAliveFrame {
   }
 
   private init(): void {
-    const { src, attrs, onLoaded, onError, keepAlive, container } = this.options;
+    const { src, attrs, onLoaded, onError, keepAlive, container, parentContainer } = this.options;
     
     if (!src) {
       warn('请填写iframe的src');
@@ -163,6 +166,11 @@ export class KeepAliveFrame {
       // 根据 keepAlive 属性决定 iframe 的放置位置
       if (keepAlive) {
         document.body.appendChild(this.el);
+        
+        // 如果有父容器，添加滚动监听
+        if (parentContainer) {
+          this.addScrollListener(parentContainer);
+        }
       } else if (container) {
         container.appendChild(this.el);
       }
@@ -176,15 +184,32 @@ export class KeepAliveFrame {
 
     const { left, top, width, height } = rect;
     
+    // 保存原始位置信息
+    this.originalRect = { left, top, width, height };
+    
     // 只在 keepAlive 模式下设置定位
     if (this.options.keepAlive) {
-      this.setStyle({
-        position: "fixed",
-        left: `${left}px`,
-        top: `${top}px`,
-        width: `${width}px`,
-        height: `${height}px`,
-      });
+      // 如果有父容器，需要考虑滚动偏移量
+      if (this.options.parentContainer) {
+        const scrollTop = this.options.parentContainer.scrollTop;
+        const scrollLeft = this.options.parentContainer.scrollLeft;
+        
+        this.setStyle({
+          position: "fixed",
+          left: `${left - scrollLeft}px`,
+          top: `${top - scrollTop}px`,
+          width: `${width}px`,
+          height: `${height}px`,
+        });
+      } else {
+        this.setStyle({
+          position: "fixed",
+          left: `${left}px`,
+          top: `${top}px`,
+          width: `${width}px`,
+          height: `${height}px`,
+        });
+      }
     } else {
       this.setStyle({
         width: "100%",
@@ -200,6 +225,12 @@ export class KeepAliveFrame {
     this.el.onerror = null;
     this.el.remove();
     this.el = null;
+
+    // 清理滚动事件监听器
+    if (this.scrollHandler && this.options.parentContainer) {
+      this.options.parentContainer.removeEventListener('scroll', this.scrollHandler);
+      this.scrollHandler = null;
+    }
   }
 
   show(): void {
@@ -230,6 +261,28 @@ export class KeepAliveFrame {
         this.el.setAttribute(key, String(value));
       }
     });
+  }
+
+  private addScrollListener(container: HTMLElement): void {
+    if (!this.el) return;
+
+    this.scrollHandler = () => {
+      if (!this.el || !this.options.keepAlive) return;
+      
+      const scrollTop = container.scrollTop;
+      const scrollLeft = container.scrollLeft;
+      
+      // 基于原始位置和滚动偏移量重新计算位置
+      this.setStyle({
+        position: "fixed",
+        left: `${this.originalRect.left - scrollLeft}px`,
+        top: `${this.originalRect.top - scrollTop}px`,
+        width: `${this.originalRect.width}px`,
+        height: `${this.originalRect.height}px`
+      });
+    };
+
+    container.addEventListener('scroll', this.scrollHandler);
   }
 }
 
