@@ -44,6 +44,7 @@ const props = withDefaults(defineProps<{
     keepAlive?: boolean;
     iframeAttrs?: Record<string, any>;
     maxCacheSize?: number; // 最大缓存数量
+    parentContainer?: HTMLElement; // 父容器，用于监听滚动事件
 }>(), {
     keepAlive: true,
     maxCacheSize: 10
@@ -175,7 +176,8 @@ function createFrame() {
         onLoaded: handleLoad,
         onError: handleError,
         keepAlive: props.keepAlive,
-        container: props.keepAlive ? undefined : iframeContainerRef.value
+        container: props.keepAlive ? undefined : iframeContainerRef.value,
+        parentContainer: props.parentContainer
     });
 }
 

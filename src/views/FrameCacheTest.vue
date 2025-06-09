@@ -38,7 +38,7 @@
     </div>
 
     <!-- iframe 容器 -->
-    <div class="frames-wrapper">
+    <div class="frames-wrapper" ref="framesWrapperRef">
       <div 
         class="frames-grid"
         :style="{
@@ -60,6 +60,7 @@
               class="keep-alive-frame-container"
               :src="frame.url"
               :max-cache-size="maxCacheSize"
+              :parent-container="framesWrapperRef"
               @cache-hit="handleCacheHit"
               @cache-miss="handleCacheMiss"
               @load="handleLoad"
@@ -95,6 +96,7 @@ const frames = ref<Frame[]>([]);
 const maxCacheSize = ref(6);
 const cacheHits = ref(0);
 const cacheMisses = ref(0);
+const framesWrapperRef = ref<HTMLElement>();
 
 // 根据屏幕宽度动态计算网格列数
 const gridCols = computed(() => {
@@ -189,7 +191,7 @@ function handleError(error: Event | string) {
 }
 
 .frames-wrapper {
-  flex: 1;
+  height: 100%;
   overflow-y: auto;
   padding: 1rem;
   background-color: #f9fafb;
