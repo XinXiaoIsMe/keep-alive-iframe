@@ -1,6 +1,6 @@
 {
   "name": "keep-alive-iframe",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Vue component for managing iframe lifecycle with keep-alive functionality",
   "type": "module",
   "main": "dist/keep-alive-iframe.umd.js",
