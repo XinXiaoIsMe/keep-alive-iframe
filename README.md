@@ -50,7 +50,6 @@ pnpm add keep-alive-iframe
 
 <script setup>
 import KeepAliveFrame from 'keep-alive-iframe'
-// 可选：导入样式
 import 'keep-alive-iframe/style.css'
 
 const onFrameLoad = (event) => {
