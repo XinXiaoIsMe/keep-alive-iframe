@@ -2,8 +2,8 @@
   <div flex="~ col" w-100vw h-100vh p-20px box-border>
     <div m-b-10px>
       <router-link class="btn" to="/pinia">Pinia</router-link>
-      <router-link class="btn m-l-10px" to="/vue_router">VueRouter</router-link>
-      <router-link class="btn m-l-10px" to="/search">Search</router-link>
+      <router-link class="btn m-l-10px" to="/vue_router">VueRouter(不缓存iframe)</router-link>
+      <router-link class="btn m-l-10px" to="/search">Search(测试显示隐藏iframe)</router-link>
       <router-link class="btn m-l-10px" to="/frame_cache_test">缓存测试</router-link>
     </div>
     <router-view v-slot="{ Component }">

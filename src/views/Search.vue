@@ -16,7 +16,7 @@ import { useToggle } from '@vueuse/core';
 import { KeepAliveFrame, type HTMLElementRect } from '../components';
 
 const URLS = {
-  baidu: 'http://www.baidu.com',
+  baidu: 'https://www.baidu.com',
   sougou: 'https://www.sogou.com/'
 };
 
