@@ -1,13 +1,26 @@
 {
   "name": "keep-alive-iframe",
-  "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "A Vue component for managing iframe lifecycle with keep-alive functionality",
   "type": "module",
+  "main": "dist/keep-alive-iframe.umd.js",
+  "module": "dist/keep-alive-iframe.es.js",
+  "types": "dist/types/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/keep-alive-iframe.es.js",
+      "require": "./dist/keep-alive-iframe.umd.js"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
-    "remove": "rimraf node_modules"
+    "remove": "rimraf node_modules",
+    "build:lib": "node scripts/build.js"
   },
   "dependencies": {
     "@iconify/vue": "^5.0.0",
@@ -18,11 +31,33 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
     "@vue/tsconfig": "^0.7.0",
+    "chalk": "4.1.2",
     "rimraf": "^6.0.1",
     "typescript": "~5.8.3",
     "unocss": "^66.1.3",
     "vite": "^6.3.5",
+    "vite-plugin-dts": "^4.5.4",
     "vue-tsc": "^2.2.8"
   },
-  "packageManager": "pnpm@9.5.0"
+  "peerDependencies": {
+    "vue": "^3.0.0"
+  },
+  "keywords": [
+    "vue",
+    "iframe",
+    "keep-alive",
+    "component",
+    "cache"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/keep-alive-iframe.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/keep-alive-iframe/issues"
+  },
+  "homepage": "https://github.com/yourusername/keep-alive-iframe#readme",
+  "packageManager": "pnpm@9.5.0+sha512.140036830124618d624a2187b50d04289d5a087f326c9edfc0ccd733d76c4f52c3a313d4fc148794a2a9d81553016004e6742e8cf850670268a7387fc220c903"
 }

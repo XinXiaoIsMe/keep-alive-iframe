@@ -13,7 +13,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { useToggle } from '@vueuse/core';
-import { KeepAliveFrame, type HTMLElementRect } from '../components';
+import KeepAliveFrame, { type HTMLElementRect } from '../libs';
 
 const URLS = {
   baidu: 'https://www.baidu.com',

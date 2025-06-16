@@ -7,7 +7,7 @@ export interface HTMLElementRect {
   left: number;
 }
 
-export interface IFrameOptions extends HTMLElementRect {
+export interface IFrameCreateOptions extends HTMLElementRect {
   uid: string;
   src: string;
   attrs: Record<string, string | number | boolean>;
@@ -18,8 +18,21 @@ export interface IFrameOptions extends HTMLElementRect {
   parentContainer?: HTMLElement; // 父容器，用于监听滚动事件
 }
 
+// 内部使用的接口，继承自 IFrameCreateOptions
+interface IFrameOptions extends IFrameCreateOptions {}
+
+// 对外暴露的实例接口
+export interface IFrameInstance {
+  getEl(): HTMLIFrameElement | null;
+  update(src: string): void;
+  show(): void;
+  hide(): void;
+  resize(rect: HTMLElementRect): void;
+  destroy(): void;
+}
+
 interface FrameCacheItem {
-  frame: KeepAliveFrame;
+  frame: KAliveFrame;
   lastUsed: number;
 }
 
@@ -48,18 +61,19 @@ export class FrameManager {
     }
   }
 
-  static create(options: IFrameOptions): void {
+  static create(options: IFrameCreateOptions): IFrameInstance {
     const { uid } = options;
     const existingInstance = this.get(uid);
     if (existingInstance) {
       existingInstance.destroy();
     }
-    const instance = new KeepAliveFrame(options);
+    const instance = new KAliveFrame(options);
     this.frameMap.set(uid, {
       frame: instance,
       lastUsed: Date.now()
     });
     this.enforceCacheLimit();
+    return instance;
   }
 
   static destroy(uid: string): void {
@@ -102,7 +116,7 @@ export class FrameManager {
     this.updateLastUsed(uid);
   }
 
-  static get(uid: string): KeepAliveFrame | undefined {
+  static get(uid: string): IFrameInstance | undefined {
     const item = this.frameMap.get(uid);
     if (item) {
       this.updateLastUsed(uid);
@@ -128,7 +142,7 @@ export class FrameManager {
 }
 
 // 创建IFrame实例
-export class KeepAliveFrame {
+export class KAliveFrame implements IFrameInstance {
   private el: HTMLIFrameElement | null = null;
   private readonly options: IFrameOptions;
   private originalRect: HTMLElementRect = { width: 0, height: 0, top: 0, left: 0 };
@@ -296,5 +310,5 @@ export function generateId(): string {
 }
 
 function warn(msg: string): void {
-  console.error(`[KeepAliveFrame]: ${msg}`);
+  console.error(`[KAliveFrame]: ${msg}`);
 }

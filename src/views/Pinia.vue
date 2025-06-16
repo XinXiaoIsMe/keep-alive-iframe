@@ -4,7 +4,7 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
-import { KeepAliveFrame } from '../components';
+import KeepAliveFrame from '../libs';
 
 const attrs = ref({
   title: 'Pinia'

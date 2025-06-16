@@ -1,0 +1,26 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": false,
+    "emitDeclarationOnly": true,
+    "outDir": "dist/types",
+    "rootDir": "src/libs",
+    "strict": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "strictNullChecks": false,
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": [
+    "src/libs/**/*.ts",
+    "src/libs/**/*.vue"
+  ],
+  "exclude": [
+    "src/libs/**/*.test.*",
+    "src/libs/**/*.spec.*",
+    "node_modules"
+  ]
+} 

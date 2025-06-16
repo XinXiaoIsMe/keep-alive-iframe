@@ -3,5 +3,5 @@
 </template>
 
 <script lang="ts" setup>
-import { KeepAliveFrame } from '../components';
+import KeepAliveFrame from '../libs';
 </script>

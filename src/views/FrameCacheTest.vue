@@ -75,8 +75,7 @@
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
-import { KeepAliveFrame } from '../components';
-import { generateId } from '../components/core';
+import KeepAliveFrame, { generateId } from '../libs';
 
 const FRAMES = {
   baidu: { name: '百度', url: 'https://www.baidu.com' },
