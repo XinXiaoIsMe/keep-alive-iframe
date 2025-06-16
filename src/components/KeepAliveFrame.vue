@@ -80,7 +80,7 @@ function ensureFrame() {
 }
 
 defineExpose({
-    getFrame: () => FrameManager.get(uid)?.el
+    getFrame: () => FrameManager.get(uid)?.getEl()
 });
 
 useResizeObserver(

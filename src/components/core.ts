@@ -284,6 +284,10 @@ export class KeepAliveFrame {
 
     container.addEventListener('scroll', this.scrollHandler);
   }
+
+  getEl () {
+    return this.el;
+  }
 }
 
 let id = 0;
