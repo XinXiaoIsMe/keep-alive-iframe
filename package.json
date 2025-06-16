@@ -1,6 +1,6 @@
 {
   "name": "keep-alive-iframe",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A Vue component for managing iframe lifecycle with keep-alive functionality",
   "type": "module",
   "main": "dist/keep-alive-iframe.umd.js",
@@ -24,7 +24,8 @@
     "release": "bumpp && pnpm run build:lib && pnpm publish dist/ --access public && changelogithub",
     "release:patch": "bumpp patch && pnpm run build:lib && pnpm publish dist/ --access public && changelogithub",
     "release:minor": "bumpp minor && pnpm run build:lib && pnpm publish dist/ --access public && changelogithub",
-    "release:major": "bumpp major && pnpm run build:lib && pnpm publish dist/ --access public && changelogithub"
+    "release:major": "bumpp major && pnpm run build:lib && pnpm publish dist/ --access public && changelogithub",
+    "changelog": "changelogithub"
   },
   "dependencies": {
     "@iconify/vue": "^5.0.0",
