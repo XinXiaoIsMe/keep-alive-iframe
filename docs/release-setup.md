@@ -16,15 +16,35 @@
 
 ### 2. 配置环境变量
 
-#### 方法 1: 临时设置（推荐）
+#### 方法 1: 直接设置（推荐）
 ```bash
+# 设置环境变量
 export GITHUB_TOKEN=your_github_token_here
+
+# 验证设置
+echo $GITHUB_TOKEN
+
+# 运行发布
 pnpm release:patch
 ```
 
-#### 方法 2: 使用脚本设置  
+#### 方法 2: 使用 source 命令
 ```bash
-./scripts/setup-env.sh your_github_token_here
+# 使用 source 命令（重要！）
+source ./scripts/setup-env.sh your_github_token_here
+
+# 验证设置
+pnpm check-env
+```
+
+### 3. 验证配置
+
+```bash
+# 检查环境变量状态
+pnpm check-env
+
+# 或者直接检查
+echo $GITHUB_TOKEN
 ```
 
 ## 🚀 发布命令
