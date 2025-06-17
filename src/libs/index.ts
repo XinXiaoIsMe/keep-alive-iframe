@@ -1,3 +1,6 @@
+// 导入 UnoCSS 样式
+import 'virtual:uno.css';
+
 // 导出所有核心功能
 export * from './core';
 

@@ -41,25 +41,31 @@ pnpm add keep-alive-iframe @vueuse/core
 
 ```vue
 <template>
-  <KeepAliveFrame
-    src="https://example.com"
-    :keep-alive="true"
-    :max-cache-size="10"
-    @load="onFrameLoad"
-    @error="onFrameError"
-  />
+  <div>
+    <KeepAliveFrame 
+      :src="currentSrc" 
+      :keep-alive="true"
+      @load="handleLoad"
+      @error="handleError"
+    />
+  </div>
 </template>
 
 <script setup>
-import KeepAliveFrame from 'keep-alive-iframe'
+import { ref } from 'vue'
+import { KeepAliveFrame } from 'keep-alive-iframe'
+
+// 自动导入样式（如果需要）
 import 'keep-alive-iframe/style.css'
 
-const onFrameLoad = (event) => {
-  console.log('iframe 加载完成', event)
+const currentSrc = ref('https://example.com')
+
+const handleLoad = () => {
+  console.log('iframe loaded')
 }
 
-const onFrameError = (error) => {
-  console.error('iframe 加载失败', error)
+const handleError = () => {
+  console.log('iframe load error')
 }
 </script>
 ```
@@ -176,6 +182,7 @@ FrameManager.setMaxCacheSize(20)  // 设置最大缓存数
 | `iframeAttrs` | `Record<string, any>` | `{}` | iframe 元素的原生属性 |
 | `maxCacheSize` | `number` | `10` | 最大缓存 iframe 数量 |
 | `parentContainer` | `HTMLElement` | - | 父级滚动容器（用于滚动同步） |
+| `zIndex` | `number` | `1` | iframe 的 z-index |
 
 ### Events
 
@@ -280,3 +287,16 @@ npm run build
 - [GitHub 仓库](https://github.com/your-username/keep-alive-iframe)
 - [npm 包](https://www.npmjs.com/package/keep-alive-iframe)
 - [问题反馈](https://github.com/your-username/keep-alive-iframe/issues)
+
+### CSS 样式
+
+此库包含了完整的 UnoCSS 样式，包括：
+
+- 所有基础工具类（定位、尺寸、颜色等）
+- 动画样式（loading spinner）
+- 组件专用样式
+
+样式会自动打包到 `keep-alive-iframe.css` 中，您可以：
+
+1. **自动导入**（推荐）：导入组件时样式会自动加载
+2. **手动导入**：`import 'keep-alive-iframe/style.css'`
