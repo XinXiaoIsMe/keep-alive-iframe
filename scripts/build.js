@@ -73,6 +73,7 @@ async function buildLib() {
       style: './keep-alive-iframe.css',
       files: [
         '*.js',
+        '*.js.map',
         '*.css',
         'types/',
         'README.md'
