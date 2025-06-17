@@ -5,11 +5,9 @@
                 请输入iframe的地址
             </div>
         </slot>
-        <slot v-else-if="isLoading" name="loading">
-            <div class="w-full h-full absolute inset-0 bg-white/80 backdrop-blur-sm z-1 flex items-center justify-center">
-                <div class="flex items-center justify-center w-full h-full">
-                    <div class="keep-alive-loading-spinner"></div>
-                </div>
+        <slot v-else-if="isLoading" name="loading" :zIndex="zIndex + 1">
+            <div class="w-full h-full absolute left-0 top-0 inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center" :style="{ zIndex: zIndex + 1 }">
+                <div class="keep-alive-loading-spinner"></div>
             </div>
         </slot>
         <slot v-else-if="isError" name="error">
@@ -31,9 +29,11 @@ const props = withDefaults(defineProps<{
     iframeAttrs?: Record<string, any>;
     maxCacheSize?: number;
     parentContainer?: HTMLElement;
+    zIndex?: number;
 }>(), {
     keepAlive: true,
-    maxCacheSize: 10
+    maxCacheSize: 10,
+    zIndex: 0
 });
 
 const emit = defineEmits<{
@@ -150,6 +150,7 @@ function createFrame() {
         left,
         top,
         src: props.src,
+        zIndex: props.zIndex || 0,
         attrs: props.iframeAttrs || {},
         onLoaded: handleLoad,
         onError: handleError,

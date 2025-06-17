@@ -7,9 +7,10 @@ export interface HTMLElementRect {
   left: number;
 }
 
-export interface IFrameCreateOptions extends HTMLElementRect {
+export interface IFrameOptions extends HTMLElementRect {
   uid: string;
   src: string;
+  zIndex: number;
   attrs: Record<string, string | number | boolean>;
   onLoaded?: (e: Event) => void;
   onError?: (e: Event | string) => void;
@@ -17,9 +18,6 @@ export interface IFrameCreateOptions extends HTMLElementRect {
   container?: HTMLElement;
   parentContainer?: HTMLElement; // 父容器，用于监听滚动事件
 }
-
-// 内部使用的接口，继承自 IFrameCreateOptions
-interface IFrameOptions extends IFrameCreateOptions {}
 
 // 对外暴露的实例接口
 export interface IFrameInstance {
@@ -61,7 +59,7 @@ export class FrameManager {
     }
   }
 
-  static create(options: IFrameCreateOptions): IFrameInstance {
+  static create(options: IFrameOptions): IFrameInstance {
     const { uid } = options;
     const existingInstance = this.get(uid);
     if (existingInstance) {
@@ -154,7 +152,7 @@ export class KAliveFrame implements IFrameInstance {
   }
 
   private init(): void {
-    const { src, attrs, onLoaded, onError, keepAlive, container, parentContainer } = this.options;
+    const { src, zIndex, attrs, onLoaded, onError, keepAlive, container, parentContainer } = this.options;
     
     if (!src) {
       warn('请填写iframe的src');
@@ -164,6 +162,7 @@ export class KAliveFrame implements IFrameInstance {
     try {
       this.el = document.createElement("iframe");
       this.el.src = src;
+      this.el.style.setProperty('z-index', zIndex.toString());
       this.el.classList.add('keep-alive-frame');
       
       if (onLoaded) {
