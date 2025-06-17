@@ -310,5 +310,5 @@ export function generateId(): string {
 }
 
 function warn(msg: string): void {
-  console.error(`[KAliveFrame]: ${msg}`);
+  console.error(`[KeepAliveFrame]: ${msg}`);
 }
