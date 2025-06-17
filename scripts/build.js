@@ -44,6 +44,7 @@ async function buildLib() {
           fileName: (format) => `keep-alive-iframe.${format}.js`,
         },
         copyPublicDir: false,
+        sourcemap: true,
         rollupOptions: {
           external: ['vue'],
           output: {
