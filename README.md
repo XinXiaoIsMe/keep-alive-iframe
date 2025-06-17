@@ -24,14 +24,16 @@
 
 ```bash
 # npm
-npm install keep-alive-iframe
+npm install keep-alive-iframe @vueuse/core @iconify/vue
 
 # yarn
-yarn add keep-alive-iframe
+yarn add keep-alive-iframe @vueuse/core @iconify/vue
 
 # pnpm
-pnpm add keep-alive-iframe
+pnpm add keep-alive-iframe @vueuse/core @iconify/vue
 ```
+
+> **⚠️ 重要**：该库依赖 `@vueuse/core` 和 `@iconify/vue`，请确保这些依赖已安装。
 
 ## 🔧 使用方法
 

@@ -46,10 +46,12 @@ async function buildLib() {
         copyPublicDir: false,
         sourcemap: true,
         rollupOptions: {
-          external: ['vue'],
+          external: ['vue', '@vueuse/core', '@iconify/vue'],
           output: {
             globals: {
               vue: 'Vue',
+              '@vueuse/core': 'VueUse',
+              '@iconify/vue': 'IconifyVue',
             },
             exports: 'named',
           },
@@ -93,7 +95,9 @@ async function buildLib() {
       repository: originalPkg.repository,
       bugs: originalPkg.bugs,
       peerDependencies: {
-        vue: '^3.0.0'
+        vue: '^3.0.0',
+        '@vueuse/core': '^13.0.0',
+        '@iconify/vue': '^5.0.0'
       }
     }
     
