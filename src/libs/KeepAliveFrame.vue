@@ -8,7 +8,7 @@
         <slot v-else-if="isLoading" name="loading">
             <div class="absolute inset-0 bg-white/80 backdrop-blur-sm z-1 flex items-center justify-center">
                 <div class="flex items-center justify-center w-full h-full">
-                    <Icon icon="eos-icons:bubble-loading" width="40" height="40" />
+                    <div class="keep-alive-loading-spinner"></div>
                 </div>
             </div>
         </slot>
@@ -24,7 +24,6 @@
 import { ref, watch, onUnmounted, onMounted, useTemplateRef, onDeactivated, onActivated } from 'vue';
 import { useResizeObserver, useThrottleFn } from '@vueuse/core';
 import { type HTMLElementRect, FrameManager, generateId } from './core';
-import { Icon } from '@iconify/vue';
 
 const props = withDefaults(defineProps<{
     src: string;
@@ -228,5 +227,20 @@ function getContainerRect(): HTMLElementRect {
     left: 0;
     width: 0;
     height: 0;
+}
+
+/* CSS Loading Spinner */
+.keep-alive-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: keep-alive-spin 1s linear infinite;
+}
+
+@keyframes keep-alive-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 </style>

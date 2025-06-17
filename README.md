@@ -24,14 +24,16 @@
 
 ```bash
 # npm
-npm install keep-alive-iframe
+npm install keep-alive-iframe @vueuse/core
 
 # yarn
-yarn add keep-alive-iframe
+yarn add keep-alive-iframe @vueuse/core
 
 # pnpm
-pnpm add keep-alive-iframe
+pnpm add keep-alive-iframe @vueuse/core
 ```
+
+> **📦 依赖说明**：需要安装 `@vueuse/core` 作为 peer dependency。
 
 ## 🔧 使用方法
 
