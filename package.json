@@ -26,7 +26,9 @@
     "release:minor": "bumpp minor && pnpm run build:lib && pnpm publish dist/ --access public && changelogithub",
     "release:major": "bumpp major && pnpm run build:lib && pnpm publish dist/ --access public && changelogithub",
     "changelog": "changelogithub",
-    "check-env": "./scripts/check-env.sh"
+    "setup-env": "./scripts/setup-env.sh",
+    "check-env": "./scripts/check-env.sh",
+    "diagnose-env": "./scripts/diagnose-env.sh"
   },
   "dependencies": {
     "@iconify/vue": "^5.0.0",
