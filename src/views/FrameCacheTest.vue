@@ -16,7 +16,9 @@
           v-model="maxCacheSize" 
           min="1" 
           max="10"
-          class="cache-input"
+          input-field
+          w-20
+          text-center
         />
       </div>
     </div>
@@ -167,12 +169,7 @@ function handleError(error: Event | string) {
   margin-left: auto;
 }
 
-.cache-input {
-  width: 40px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  padding: 0 8px;
-}
+
 
 .stats-panel {
   display: flex;
