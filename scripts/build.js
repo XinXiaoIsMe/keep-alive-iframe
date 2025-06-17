@@ -45,12 +45,10 @@ async function buildLib() {
         },
         copyPublicDir: false,
         rollupOptions: {
-          external: ['vue', '@vueuse/core', '@iconify/vue'],
+          external: ['vue'],
           output: {
             globals: {
               vue: 'Vue',
-              '@vueuse/core': 'VueUse',
-              '@iconify/vue': 'IconifyVue',
             },
             exports: 'named',
           },
