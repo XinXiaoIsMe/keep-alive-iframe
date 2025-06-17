@@ -6,7 +6,7 @@
             </div>
         </slot>
         <slot v-else-if="isLoading" name="loading">
-            <div class="absolute inset-0 bg-white/80 backdrop-blur-sm z-1 flex items-center justify-center">
+            <div class="w-full h-full absolute inset-0 bg-white/80 backdrop-blur-sm z-1 flex items-center justify-center">
                 <div class="flex items-center justify-center w-full h-full">
                     <div class="keep-alive-loading-spinner"></div>
                 </div>
